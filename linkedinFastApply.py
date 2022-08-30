@@ -10,15 +10,24 @@ import time
 class LinkedInEasyApply():
 
     # xpath list begin
-    XPATH_keywordbox = '//*[@id="JOBS"]/section[1]/input'
-    XPATH_locationbox = '//*[@id="JOBS"]/section[2]/input'
+
+    # when you logged in. this option is disabled
+    # XPATH_keywordbox = '//*[@id="JOBS"]/section[1]/input'
+    # XPATH_locationbox = '//*[@id="JOBS"]/section[2]/input'
+
     XPATH_locationboxclearbutton = '//*[@id="JOBS"]/section[2]/button'
     XPATH_europaacceptterms = '//*[@id="artdeco-global-alert-container"]/div/section/div/div[2]/button[1]'
     XPATH_searchbutton = '//*[@id="main-content"]/section[1]/div/section/div[2]/button[2]'
     # xpath list end
 
+    # classNames
+    CLASSNAME_searchboxLabel = 'jobs-search-box__keywords-label'
+
     # Do not use this path that is extracted from "chrome://version/"
     exec_path_chrome = '''C://Users//enesm//AppData//Local//Google//Chrome//User Data'''
+
+    # send key speed
+    send_key_speed = 0.1
 
     def setUp(self):
         chromedriver_autoinstaller.install()
@@ -30,13 +39,21 @@ class LinkedInEasyApply():
         self.driver = webdriver.Chrome(
             chrome_options=self.ch_options)
 
+        # Maximum size
+        self.driver.maximize_window()
+
     # helper begin
     def WriteElement(self, by, search, value):
         box = self.driver.find_elements(by, search)
         if (box.__len__() > 0):
-            box[0].send_keys(value)
+            self.send_keys(box[0], value)
             return True
         return False
+
+    def send_keys(self, box, value):
+        for character in value:
+            box.send_keys(character)
+            time.sleep(self.send_key_speed)  # pause for selected seconds
 
     def ClickElement(self, by, search):
         command = self.driver.find_elements(by, search)
@@ -44,7 +61,6 @@ class LinkedInEasyApply():
             command[0].click()
             return True
         return False
-
     # helper end
 
     def loadBrowser(self, url):
@@ -56,27 +72,16 @@ class LinkedInEasyApply():
             By.XPATH, self.XPATH_europaacceptterms)
 
     def search(self, keyword, location):
-        # Keyword Search
-        self.WriteElement(
-            By.XPATH, self.XPATH_keywordbox, keyword)
+        # activate searchbox and location box
+        self.ClickElement(
+            By.CLASS_NAME, self.CLASSNAME_searchboxLabel)
         time.sleep(1)
-        # cancel focus
-        self.ClickElement(
-            By.TAG_NAME, 'body')
-        # location
-        self.ClickElement(
-            By.XPATH, self.XPATH_locationboxclearbutton)
+        self.send_keys(self.driver.switch_to.active_element, keyword)
+        self.driver.switch_to.active_element.send_keys(Keys.TAB)
         time.sleep(1)
-        self.WriteElement(
-            By.XPATH, self.XPATH_locationbox, location)
-        time.sleep(1)
-        # cancel focus
-        self.ClickElement(
-            By.TAG_NAME, 'body')
-
-        # send form
-        self.ClickElement(
-            By.XPATH, self.XPATH_searchbutton)
+        self.send_keys(self.driver.switch_to.active_element, location)
+        self.driver.switch_to.active_element.send_keys(Keys.ENTER)
+        pass
 
     def nextWorkPosition(self):
         pass
